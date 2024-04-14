@@ -8,9 +8,9 @@ use test;
 
 -- Create tables for importing .csv files
 create table students(student_id int primary key, first_name varchar(50), last_name varchar(50), age int, city varchar(50), state varchar(20));
+create table instructors(instructor_id int primary key, first_name varchar(20), last_name varchar(20), email varchar(50));
 create table courses(course_id int primary key, course_name varchar(20), credit_hours int, instructor_id int, foreign key (instructor_id) references instructors(instructor_id)); 
 create table enrollments(enrollment_id int primary key, student_id int, course_id int, enrollment_date date, grade varchar(5),foreign key (student_id) references students(student_id),foreign key (course_id) references courses(course_id));
-create table instructors(instructor_id int primary key, first_name varchar(20), last_name varchar(20), email varchar(50));
 
 -- Load all .csv files into tables
 -- Paste the path of .csv file in below apostrophe for all files
@@ -20,13 +20,13 @@ optionally enclosed by '"'
 lines terminated by '\n'
 ignore 1 rows;
 
-load data infile './courses.csv' into table courses
+load data infile './instructors.csv' into table instructors
 fields terminated by ','
 optionally enclosed by '"'
 lines terminated by '\n'
 ignore 1 rows;
 
-load data infile './instructors.csv' into table instructors
+load data infile './courses.csv' into table courses
 fields terminated by ','
 optionally enclosed by '"'
 lines terminated by '\n'
