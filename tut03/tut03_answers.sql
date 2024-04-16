@@ -13,30 +13,6 @@ create table courses(course_id int primary key, course_name varchar(20), credit_
 create table enrollments(enrollment_id int primary key, student_id int, course_id int, enrollment_date date, grade varchar(5),foreign key (student_id) references students(student_id),foreign key (course_id) references courses(course_id));
 
 -- Load all .csv files into tables
--- Paste the path of .csv file in below apostrophe for all files
-load data infile './students.csv' into table students
-fields terminated by ','
-optionally enclosed by '"'
-lines terminated by '\n'
-ignore 1 rows;
-
-load data infile './instructors.csv' into table instructors
-fields terminated by ','
-optionally enclosed by '"'
-lines terminated by '\n'
-ignore 1 rows;
-
-load data infile './courses.csv' into table courses
-fields terminated by ','
-optionally enclosed by '"'
-lines terminated by '\n'
-ignore 1 rows;
-
-load data infile './enrollments.csv' into table enrollments
-fields terminated by ','
-optionally enclosed by '"'
-lines terminated by '\n'
-ignore 1 rows;
 
 -- Question 1
 select first_name,last_name  from students;
