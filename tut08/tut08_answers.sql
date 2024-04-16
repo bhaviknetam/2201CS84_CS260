@@ -1,9 +1,41 @@
 -- General Instructions
 -- 1.	The .sql files are run automatically, so please ensure that there are no syntax errors in the file. If we are unable to run your file, you get an automatic reduction to 0 marks.
 -- Comment in MYSQL 
--- General Instructions
--- 1.	The .sql files are run automatically, so please ensure that there are no syntax errors in the file. If we are unable to run your file, you get an automatic reduction to 0 marks.
--- Comment in MYSQL 
+create database test;
+use test;
+
+create table employees(
+emp_id INT Primary Key,
+first_name VARCHAR(50),
+last_name VARCHAR(50),
+salary DECIMAL,
+department_id INT);
+
+create table departments(
+department_id INT Primary Key,
+department_name VARCHAR(50),
+location VARCHAR(50),
+manager_id INT,
+foreign key (manager_id) references employees(emp_id));
+
+alter table employees add
+foreign key (department_id) references departments(department_id);
+
+create table projects(
+project_id INT Primary Key,
+project_name VARCHAR(50),
+budget DECIMAL,
+start_date DATE,
+end_date DATE);
+
+create table works_on(
+emp_id INT,
+project_id INT,
+hours_worked INT,
+foreign key (emp_id) references employees(emp_id);
+foreign key (project_id) references projects(project_id));
+
+-- Import .csv file 
 
 -- 1.
 DELIMITER //
