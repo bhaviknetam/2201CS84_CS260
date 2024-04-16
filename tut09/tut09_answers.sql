@@ -282,7 +282,124 @@ WHERE player_match.role = 'CaptainKeeper'
 AND matches.match_winner = player_match.team_id
 ORDER BY players.player_name;
 
+-- Q17
+WITH fifty_scorers AS (
+    SELECT DISTINCT ball_by_ball.striker AS player_id
+    FROM ball_by_ball
+    JOIN batsman_scored ON ball_by_ball.match_id = batsman_scored.match_id
+                        AND ball_by_ball.over_id = batsman_scored.over_id
+                        AND ball_by_ball.ball_id = batsman_scored.ball_id
+                        AND ball_by_ball.innings_no = batsman_scored.innings_no
+    GROUP BY ball_by_ball.match_id, ball_by_ball.striker
+    HAVING SUM(batsman_scored.runs_scored) >= 50
+),
+total_runs AS (
+    SELECT ball_by_ball.striker AS player_id, SUM(batsman_scored.runs_scored) AS runs_scored
+    FROM ball_by_ball
+    JOIN batsman_scored ON ball_by_ball.match_id = batsman_scored.match_id
+                        AND ball_by_ball.over_id = batsman_scored.over_id
+                        AND ball_by_ball.ball_id = batsman_scored.ball_id
+                        AND ball_by_ball.innings_no = batsman_scored.innings_no
+    GROUP BY ball_by_ball.striker
+)
+SELECT total_runs.player_id, total_runs.runs_scored AS runs_scored
+FROM fifty_scorers
+JOIN total_runs ON total_runs.player_id = fifty_scorers.player_id
+ORDER BY runs_scored DESC, players.id;
 
+-- Q18
+SELECT DISTINCT players.player_name
+FROM players
+JOIN (
+    WITH derived18_3 AS (
+        WITH derived18_1 AS (
+            WITH derived18 AS (
+                (SELECT ball_by_ball.match_id AS match_id, 
+                        ball_by_ball.over_id AS over_id, 
+                        ball_by_ball.ball_id AS ball_id, 
+                        ball_by_ball.innings_no AS innings_no, 
+                        striker AS player_id, 
+                        runs_scored AS runs 
+                 FROM ball_by_ball
+                 JOIN batsman_scored ON ball_by_ball.match_id = batsman_scored.match_id 
+                                    AND ball_by_ball.over_id = batsman_scored.over_id 
+                                    AND ball_by_ball.ball_id = batsman_scored.ball_id 
+                                    AND ball_by_ball.innings_no = batsman_scored.innings_no
+                )
+            )
+            SELECT player_id, match_id 
+            FROM derived18 
+            GROUP BY player_id, match_id 
+            HAVING SUM(runs) >= 100 
+            ORDER BY match_id
+        ),
+        derived18_2 AS (
+            (SELECT match_id, team_1 AS loser 
+             FROM matches 
+             WHERE match_winner = team_2
+            )
+            UNION 
+            (SELECT match_id, team_2 AS loser 
+             FROM matches 
+             WHERE match_winner = team_1
+            )
+        )
+        SELECT player_id, derived18_1.match_id, loser AS team_id 
+        FROM derived18_1
+        JOIN derived18_2 ON derived18_1.match_id = derived18_2.match_id
+    )
+    SELECT player_match.player_id AS player_id 
+    FROM player_match
+    JOIN derived18_3 ON derived18_3.team_id = player_match.team_id 
+                     AND derived18_3.player_id = player_match.player_id 
+                     AND derived18_3.match_id = player_match.match_id
+) AS derived18_4 ON derived18_4.player_id = players.player_id
+ORDER BY players.player_name;
 
+-- Q19
+WITH teamLost AS (
+    (SELECT match_id, venue, team_1 AS loser FROM matches WHERE match_winner != team_1)
+    UNION 
+    (SELECT match_id, venue, team_2 AS loser FROM matches WHERE match_winner != team_2)
+)
+SELECT match_id, venue 
+FROM teamLost 
+WHERE loser = (SELECT team_id FROM teams WHERE team_name = 'Kolkata Knight Riders')
+ORDER BY match_id;
 
+-- Q20
+SELECT player_name
+FROM players
+JOIN (
+    SELECT player_id, ROUND((runs / num_matches), 3) AS batting_avg
+    FROM (
+        WITH derived20 AS (
+            WITH runs_scored AS (
+                SELECT ball_by_ball.match_id AS match_id, 
+                       ball_by_ball.over_id AS over_id, 
+                       ball_by_ball.ball_id AS ball_id, 
+                       ball_by_ball.innings_no AS innings_no, 
+                       striker AS player_id, 
+                       runs_scored AS runs 
+                FROM ball_by_ball
+                JOIN batsman_scored ON ball_by_ball.match_id = batsman_scored.match_id 
+                                   AND ball_by_ball.over_id = batsman_scored.over_id 
+                                   AND ball_by_ball.ball_id = batsman_scored.ball_id 
+                                   AND ball_by_ball.innings_no = batsman_scored.innings_no
+            )
+            SELECT player_id, match_id, SUM(runs) AS total_runs 
+            FROM runs_scored 
+            WHERE match_id IN (SELECT match_id FROM matches WHERE season_id = 5)
+            GROUP BY player_id, match_id 
+            ORDER BY player_id
+        )
+        SELECT player_id, SUM(total_runs) AS runs, COUNT(match_id) AS num_matches 
+        FROM derived20 
+        GROUP BY player_id 
+        ORDER BY player_id
+    ) AS derived20_1 
+    ORDER BY batting_avg DESC 
+    LIMIT 10
+) AS derived20_2 ON players.player_id = derived20_2.player_id 
+ORDER BY batting_avg DESC, player_name;
 
